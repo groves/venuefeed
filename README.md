@@ -5,6 +5,7 @@ To use, create a config.py like
     apikey = 'MY API KEY'
     venues = {'songkick venue id': 'Venue Name for Feed',
               'another venue id': 'Another Venue Name'}
+    urlbase = 'http://blah.myhost.com/'
 
 install requests from PyPI, and run python concerts.py periodically.
 

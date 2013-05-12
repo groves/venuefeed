@@ -68,7 +68,7 @@ class Cache(object):
 
     def _writefeed(self, title, events):
         fn = title.replace(" ", "_") + ".atom"
-        feed = atom.AtomFeed(title, url="http://aztec.bungleton.com/feeds/%s" % fn)
+        feed = atom.AtomFeed(title, url="%s%s" % (config.urlbase, fn))
         # Include the events by the day we last saw an update and then the day of the event inside of that
         for event in sorted(events, key=lambda e: e.updated.date().isoformat() + e.date):
             feed.add(event.displayname, url=event.uri, updated=event.updated)
@@ -79,12 +79,14 @@ class Cache(object):
         for venueid, events in self.byvenue.iteritems():
             self._writefeed(config.venues[venueid], events.values())
 
+# Touch all of our config stuff just to make sure it's defined
+print "Fetching %s venues to be hosted at %s" % (len(config.venues), config.urlbase)
+client = SongkickClient(config.apikey)
 
 existing = Cache()
 if os.path.exists("concerts.pickle"):
     existing = pickle.load(open('concerts.pickle', 'rb'))
 
-client = SongkickClient(config.apikey)
 
 fetched = Cache()
 for venueid, venue in config.venues.iteritems():
