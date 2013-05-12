@@ -36,6 +36,7 @@ class Event(object):
     def __init__(self, eventjson):
         self.id = eventjson["id"]
         self.uri = eventjson["uri"]
+        self.date = eventjson["start"]["date"]
         self.displayname = eventjson["displayName"]
         self.updated = datetime.datetime.now()
 
@@ -55,6 +56,8 @@ class Cache(object):
         for eventid, event in mergeinto.items():
             if eventid in mergefrom and mergefrom[eventid].displayname == event.displayname:
                 mergeinto[eventid] = mergefrom[eventid]
+            else:
+                print "Not previously seen", event
 
     def merge(self, other):
         for venue, otherevents in other.byvenue.iteritems():
@@ -66,7 +69,8 @@ class Cache(object):
     def _writefeed(self, title, events):
         fn = title.replace(" ", "_") + ".atom"
         feed = atom.AtomFeed(title, url="http://aztec.bungleton.com/feeds/%s" % fn)
-        for event in sorted(events, key=lambda e: e.updated):
+        # Include the events by the day we last saw an update and then the day of the event inside of that
+        for event in sorted(events, key=lambda e: e.updated.date().isoformat() + e.date):
             feed.add(event.displayname, url=event.uri, updated=event.updated)
         open('feeds/%s' % fn, 'w').write(feed.to_string().encode('utf-8'))
 
@@ -83,11 +87,11 @@ if os.path.exists("concerts.pickle"):
 client = SongkickClient(config.apikey)
 
 fetched = Cache()
-for venue in config.venues.iterkeys():
-    upcoming = client.fetchVenueCalendar(venue)
-    print "got", len(upcoming)
+for venueid, venue in config.venues.iteritems():
+    print "Fetching", venue
+    upcoming = client.fetchVenueCalendar(venueid)
     for u in upcoming:
-        fetched.add(venue, Event(u))
+        fetched.add(venueid, Event(u))
 
 fetched.merge(existing)
 fetched.writefeeds()
