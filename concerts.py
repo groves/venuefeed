@@ -17,10 +17,10 @@ class SongkickClient(object):
         perPage = 50
         events = []
         while (page - 1) * perPage < totalEntries:
-            resp = self._get('venues/%s/calendar.json' % venueId,
-                             page=page, per_page=perPage)
+            resp = self._get('venues/%s/calendar.json' % venueId, page=page, per_page=perPage)
             resultsPage = resp.json()["resultsPage"]
-            events.extend(resultsPage["results"]["event"])
+            if 'event' in resultsPage['results']:
+		    events.extend(resultsPage["results"]["event"])
             totalEntries = resultsPage["totalEntries"]
             page += 1
         return events
@@ -52,19 +52,19 @@ class Cache(object):
         self.byvenue[venueId][event.id] = event
         self.byeventid[event.id] = event
 
-    def _mergeeventiddicts(self, mergeinto, mergefrom):
+    def _mergeeventiddicts(self, mergeinto, mergefrom, lognew):
         for eventid, event in mergeinto.items():
             if eventid in mergefrom and mergefrom[eventid].displayname == event.displayname:
                 mergeinto[eventid] = mergefrom[eventid]
-            else:
+            elif lognew:
                 print "Not previously seen", event
 
     def merge(self, other):
         for venue, otherevents in other.byvenue.iteritems():
             if venue not in self.byvenue:
                 continue
-            self._mergeeventiddicts(self.byvenue[venue], otherevents)
-        self._mergeeventiddicts(self.byeventid, other.byeventid)
+            self._mergeeventiddicts(self.byvenue[venue], otherevents, lognew=True)
+        self._mergeeventiddicts(self.byeventid, other.byeventid, lognew=False)
 
     def _writefeed(self, title, events):
         fn = title.replace(" ", "_") + ".atom"
