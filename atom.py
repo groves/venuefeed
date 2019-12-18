@@ -48,7 +48,7 @@ def escape(s, quote=False):
         return ''
     elif hasattr(s, '__html__'):
         return s.__html__()
-    elif not isinstance(s, basestring):
+    elif not isinstance(s, str):
         s = unicode(s)
     s = s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
     if quote:
@@ -145,7 +145,7 @@ class AtomFeed(object):
         self.entries = entries and list(entries) or []
 
         if not hasattr(self.author, '__iter__') \
-           or isinstance(self.author, (basestring, dict)):
+           or isinstance(self.author, (str, dict)):
             self.author = [self.author]
         for i, author in enumerate(self.author):
             if not isinstance(author, dict):
@@ -310,7 +310,7 @@ class FeedEntry(object):
         self.xml_base = kwargs.get('xml_base', feed_url)
 
         if not hasattr(self.author, '__iter__') \
-           or isinstance(self.author, (basestring, dict)):
+           or isinstance(self.author, (str, dict)):
             self.author = [self.author]
         for i, author in enumerate(self.author):
             if not isinstance(author, dict):
