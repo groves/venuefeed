@@ -4,7 +4,7 @@ import config
 import datetime
 import os
 import requests
-import cPickle as pickle
+import pickle
 
 class SongkickClient(object):
     def __init__(self, apiKey):
@@ -20,7 +20,7 @@ class SongkickClient(object):
             resp = self._get('venues/%s/calendar.json' % venueId, page=page, per_page=perPage)
             resultsPage = resp.json()["resultsPage"]
             if 'event' in resultsPage['results']:
-		    events.extend(resultsPage["results"]["event"])
+                events.extend(resultsPage["results"]["event"])
             totalEntries = resultsPage["totalEntries"]
             page += 1
         return events
@@ -57,10 +57,10 @@ class Cache(object):
             if eventid in mergefrom and mergefrom[eventid].displayname == event.displayname:
                 mergeinto[eventid] = mergefrom[eventid]
             elif lognew:
-                print "Not previously seen", event
+                print("Not previously seen", event)
 
     def merge(self, other):
-        for venue, otherevents in other.byvenue.iteritems():
+        for venue, otherevents in other.byvenue.items():
             if venue not in self.byvenue:
                 continue
             self._mergeeventiddicts(self.byvenue[venue], otherevents, lognew=True)
@@ -72,15 +72,15 @@ class Cache(object):
         # Include the events by the day we last saw an update and then the day of the event inside of that
         for event in sorted(events, key=lambda e: e.updated.date().isoformat() + e.date):
             feed.add(event.displayname, url=event.uri, updated=event.updated)
-        open('feeds/%s' % fn, 'w').write(feed.to_string().encode('utf-8'))
+        open('feeds/%s' % fn, 'wb').write(feed.to_string().encode('utf-8'))
 
     def writefeeds(self):
         self._writefeed("All Concerts", self.byeventid.values())
-        for venueid, events in self.byvenue.iteritems():
+        for venueid, events in self.byvenue.items():
             self._writefeed(config.venues[venueid], events.values())
 
 # Touch all of our config stuff just to make sure it's defined
-print "Fetching %s venues to be hosted at %s" % (len(config.venues), config.urlbase)
+print("Fetching %s venues to be hosted at %s" % (len(config.venues), config.urlbase))
 client = SongkickClient(config.apikey)
 
 existing = Cache()
@@ -89,8 +89,8 @@ if os.path.exists("concerts.pickle"):
 
 
 fetched = Cache()
-for venueid, venue in config.venues.iteritems():
-    print "Fetching", venue
+for venueid, venue in config.venues.items():
+    print("Fetching", venue)
     upcoming = client.fetchVenueCalendar(venueid)
     for u in upcoming:
         fetched.add(venueid, Event(u))
